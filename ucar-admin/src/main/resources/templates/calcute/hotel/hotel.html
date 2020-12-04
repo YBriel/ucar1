@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('核算结果列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>订单编号：</label>
+                                <input type="text" name="orderId"/>
+                            </li>
+                            <li>
+                                <label>酒店名称：</label>
+                                <input name="hotelNameView" onclick="selectDeptTree()" id="hotelNameView" type="text" placeholder="请选择酒店" >
+                                <input name="orderSourceMark" id="orderSourceMark" type="text" style="display: none;" >
+                            </li>
+                             <li>
+                                <label>服务类型：</label>
+                                <select name="businessType" th:with="type=${@dict.getType('order_type')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="calcute:hotel:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-bordered">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('calcute:hotel:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('calcute:hotel:remove')}]];
+        var prefix = ctx + "calcute/hotel";
+        var deptDatas = [[${@dept.selectDeptList()}]];
+        var orderTypeDatas = [[${@dict.getType('order_type')}]];
+        var clientTypeDatas = [[${@dict.getType('client_type')}]];
+        
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "核算结果",
+                columns: [
+                          [{
+      						title : '酒店信息',
+    						align : 'center',
+    						colspan : 2
+    					}, {
+    						title : '订单信息',
+    						align : 'center',
+    						colspan : 8
+    					},{
+    						title : '酒店提成',
+    						align : 'center',
+    						colspan : 1
+    					},{
+    						title : '部门奖励',
+    						align : 'center',
+    						colspan : 5
+    					}],
+                [{
+                    field: 'id', 
+                    title: 'null',
+                    visible: false
+                },
+                {
+                    field: 'orderSourceMark', 
+                    title: '酒店名称',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectCompayLabel(deptDatas, value);
+                    }
+                    
+                },
+                {
+                    field: 'recommender', 
+                    title: '部门',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectCompayLabel(deptDatas, value);
+                    }
+                },
+                
+                {
+                    field: 'businessType', 
+                    title: '服务类型',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(orderTypeDatas, value);
+                    }
+                },
+                {
+                    field: 'clientType', 
+                    title: '下单类型',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(clientTypeDatas, value);
+                     }
+                },
+                {
+                    field: 'orderId', 
+                    title: '订单编号'
+                },
+                {
+                    field: 'totalMoney', 
+                    title: '订单总额'
+                },
+                {
+                    field: 'orderTime', 
+                    title: '下单时间'
+                },
+                {
+                    field: 'orderMoney', 
+                    title: '订单应付金额'
+                },
+                {
+                    field: 'realReceiptMoney', 
+                    title: '订单实付金额'
+                },
+                {
+                    field: 'benfitMoney', 
+                    title: '订单优惠金额'
+                },
+                {
+                    field: 'aggregationPlatFee', 
+                    title: '酒店分成(元)'
+                },
+                {
+                    field: 'recommenderFee', 
+                    title: '推荐奖励'
+                },
+                {
+                    field: 'aggrRecommenderFee', 
+                    title: '酒店方承担奖励'
+                },
+                {
+                    field: 'platRecommenderFee', 
+                    title: '平台承担奖励'
+                },
+                {
+                    field: 'createTime', 
+                    title: '计算时间'
+                }]]
+            };
+            $.table.init(options);
+        });
+        
+        function selectDeptTree() {
+        	var treeId = $("#treeId").val();
+        	var deptId = $.common.isEmpty(treeId) ? "210" : $("#treeId").val();
+        	var url = ctx + "system/dept/selectHotelDeptTree/" + deptId;
+			var options = {
+				title: '选择部门',
+				width: "380",
+				url: url,
+				callBack: doSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        
+        function doSubmit(index, layero){
+			var tree = layero.find("iframe")[0].contentWindow.$._tree;
+			if ($.tree.notAllowParents(tree)) {
+				var body = layer.getChildFrame('body', index);
+    			$("#orderSourceMark").val(body.find('#treeId').val());
+    			$("#hotelNameView").val(body.find('#treeName').val());
+    			layer.close(index);
+			}
+		}
+    </script>
+</body>
+</html>

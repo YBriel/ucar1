@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+      xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <th:block th:include="include :: header('在线用户列表')"/>
+    <link href="/static/css/element.css" th:href="@{/css/element.css}" rel="stylesheet"/>
+    <script th:src="@{/js/vue.js}"></script>
+    <script th:src="@{/js/element.js}"></script>
+</head>
+<body class="gray-bg">
+<div id="app">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="online-form">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <span class="demonstration">选择设备Id</span>
+                            <select v-model="selectCarId">
+                                <option v-for="(item,i) in positionInfo" value=item.deviceId>{{item.deviceId}}</option>
+                                <!--<option value="www.runoob.com">Runoob</option>
+                                <option value="www.google.com">Google</option>-->
+                            </select>
+                        </li>
+                        <li>
+                            <div class="block">
+                                <span class="demonstration">轨迹日期</span>
+                                <el-date-picker
+                                        v-model="carTime"
+                                        type="date"
+                                        placeholder="选择日期">
+                                </el-date-picker>
+                            </div>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                    class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                    class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-danger multiple disabled" onclick="javascript:batchForceLogout()"
+               shiro:hasPermission="monitor:online:batchForceLogout">
+                <i class="fa fa-sign-out"></i> 强退
+            </a>
+        </div>
+
+        <div class="col-sm-12 select-table table-striped">
+                <div style="width:100%;height:600px;">
+                    <div class="container">
+                        <div class="search-box">
+                            <input
+                                    v-model="searchKey"
+                                    type="search"
+                                    id="search">
+                            <button @click="searchByHand">搜索</button>
+                            <div class="tip-box" id="searchTip"></div>
+                        </div>
+                        <!--
+                          amap-manager： 地图管理对象
+                          vid：地图容器节点的ID
+                          zooms： 地图显示的缩放级别范围，在PC上，默认范围[3,18]，取值范围[3-18]；在移动设备上，默认范围[3-19]，取值范围[3-19]
+                          center： 地图中心点坐标值
+                          plugin：地图使用的插件
+                          events： 事件
+                        -->
+                        <el-amap class="amap-box"
+                                 :amap-manager="amapManager"
+                                 :vid="'amap-vue'"
+                                 :zoom="zoom"
+                                 :plugin="plugin"
+                                 :center="center"
+                                 :events="events"
+                        >
+                            <!-- 标记 -->
+
+                            <el-amap-marker v-for="(marker, index) in markers" icon="../../img/car32.png"
+                                            :position="marker.position" :key="index" :events="marker.events"
+                                            :visible="marker.visible" :draggable="marker.draggable"
+                                            :vid="index"></el-amap-marker>
+                            <!-- <el-amap-marker v-for="(marker, index) in markers" :position="markers[index].position" :key="index" :events="marker.events" :visible="marker.visible" :draggable="marker.draggable" :vid="index"></el-amap-marker>-->
+                        </el-amap>
+                    </div>
+                    <div class="toolbar">
+                        <!--      <button type="button" name="button" v-on:click="toggleVisible">toggle first marker</button>
+                              <button type="button" name="button" v-on:click="changePosition">change position</button>
+                              <button type="button" name="button" v-on:click="chnageDraggle">change draggle</button>-->
+                        <button type="button" name="button" v-on:click="addMarker">add marker</button>
+                        <button type="button" name="button" v-on:click="removeMarker">remove marker</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 先引入 Vue -->
+<!--<script src="https://unpkg.com/vue/dist/vue.js"></script>-->
+<!-- 引入组件库 -->
+<!--<script src="/static/js/vue_amap.js"></script>-->
+<script th:src="@{/js/vue_amap.js}"></script>
+<script th:src="@{/js/vue-resource.min.js}"></script>
+<!--<script src="https://unpkg.com/vue-amap/dist/index.js"></script>
+
+<script src="https://lib.baomitu.com/vue-resource/1.5.1/vue-resource.min.js"></script>-->
+<script>
+    window.VueAMap.initAMapApiLoader({
+        key: 'd6a13046ccbbe124fda43844ffd7f21f', //, 'AMap.Geolocation'
+        plugin: ['AMap.Autocomplete', 'AMap.PlaceSearch', 'AMap.Geolocation', 'AMap.Geocoder', 'AMap.Scale', 'AMap.OverView', 'AMap.ToolBar', 'AMap.MapType', 'AMap.PolyEditor', 'AMap.CircleEditor'],
+        v: '1.4.4',
+        uiVersion: '1.0.11' // 版本号
+    });
+    window.VueAMap.lazyAMapApiLoaderInstance.load().then(() => {
+        //debugger
+        // your code ...
+        this.map = new AMap.Map('amapContainer', {
+            center: new AMap.LngLat(115.877009, 28.740776)
+        });
+    });
+    //let amapManager = new AMapManager();
+    let amapManager = new VueAMap.AMapManager();
+    var app = new Vue({
+        el: '#app',
+        data() {
+            let self = this;
+
+            return {
+            	hello:'沃日',
+                carTime:'',
+                selectCarId:'',
+                positionInfo: [
+                    {
+                        deviceId: '',
+                        time: '',
+                        lon: '',
+                        lat: '',
+                    }
+                ],
+                address: null,
+                searchKey: '',
+                amapManager,
+                markers: [],
+                searchOption: {
+                    city: '全国',
+                    citylimit: true
+                },
+                center: [121.329402, 31.228667],
+                zoom: 17,
+                lng: 0,
+                lat: 0,
+                loaded: false,
+                events: {
+                    init() {
+                        console.log("哈哈哈1");
+                        VueAMap.lazyAMapApiLoaderInstance.load().then(() => {
+                            self.initSearch()
+                        })
+                    },
+                    // 点击获取地址的数据
+                    click(e) {
+                        console.log("哈哈哈2");
+                        // console.log(e)
+                        self.markers = [];
+                        let {lng, lat} = e.lnglat;
+                        self.lng = lng;
+                        self.lat = lat;
+                        self.center = [lng, lat];
+                        let marker = {
+                            position: [self.lng, self.lat]
+                        };
+                        self.markers.push(marker);
+                        // 这里通过高德 SDK 完成。
+
+                        let geocoder = new AMap.Geocoder({
+                            radius: 1000,
+                            extensions: 'all'
+                        });
+
+                        geocoder.getAddress([lng, lat], function (status, result) {
+                            if (status === 'complete' && result.info === 'OK') {
+                                if (result && result.regeocode) {
+                                    console.log(result.regeocode.formattedAddress);
+                                    self.address = result.regeocode.formattedAddress;
+                                    self.searchKey = result.regeocode.formattedAddress;
+                                    self.$nextTick()
+                                }
+                            }
+                        })
+                    }
+                },
+                // 一些工具插件
+                plugin: [
+                    {
+                        pName: 'Geocoder',
+                        events: {
+
+                            init(o) {
+                                console.log(o.getAddress())
+                            }
+                        }
+                    },
+                    {
+                        // 定位
+                        pName: 'Geolocation',
+                        events: {
+                            init(o) {
+                                console.log("哈哈哈4");
+                                // o是高德地图定位插件实例
+                                console.log("哈哈哈");
+                                console.log(o);
+                                console.log("哈哈哈");
+                                o.getCurrentPosition((status, result) => {
+                                    console.log("哈哈哈5");
+                                    console.log(result);
+                                    if (result && result.position) {
+                                        // 设置经度
+                                        self.lng = result.position.lng;
+                                        // 设置维度
+                                        self.lat = result.position.lat;
+                                        // 设置坐标
+                                        self.center = [self.lng, self.lat];
+                                        // self.markers.push([self.lng, self.lat]);
+                                        let marker = {
+                                            position: [self.lng, self.lat]
+                                        };
+                                        //self.markers.push(marker);
+                                        // load
+                                        self.loaded = true;
+                                        // 页面渲染好后
+                                        self.$nextTick()
+                                    }
+                                })
+                            }
+                        }
+                    },
+                    {
+                        // 工具栏
+                        pName: 'ToolBar',
+                        events: {
+
+                            init(instance) {
+                                console.log("哈哈哈6")
+                                // console.log(instance);
+                            }
+                        }
+                    },
+                    {
+                        // 鹰眼
+                        pName: 'OverView',
+                        events: {
+
+                            init(instance) {
+                                console.log("哈哈哈7")
+                                // console.log(instance);
+                            }
+                        }
+                    },
+                    {
+                        // 地图类型
+                        pName: 'MapType',
+                        defaultType: 0,
+                        events: {
+
+                            init(instance) {
+                                console.log("哈哈哈8")
+                                // console.log(instance);
+                            }
+                        }
+                    },
+                    {
+                        // 搜索
+                        pName: 'PlaceSearch',
+                        events: {
+
+                            init(instance) {
+                                console.log("哈哈哈9")
+                                // console.log(instance)
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        methods: {
+            initSearch() {
+                console.log("哈哈哈10");
+                let vm = this;
+                let map = this.amapManager.getMap();
+                AMapUI.loadUI(['misc/PoiPicker'], function (PoiPicker) {
+                    var poiPicker = new PoiPicker({
+                        input: 'search',
+                        placeSearchOptions: {
+                            map: map,
+                            pageSize: 10
+                        },
+                        suggestContainer: 'searchTip',
+                        searchResultsContainer: 'searchTip',
+                        searchByKeyword: ''
+                    });
+                    vm.poiPicker = poiPicker;
+                    // 监听poi选中信息
+                    poiPicker.on('poiPicked', function (poiResult) {
+                        // console.log(poiResult)
+                        console.log("哈哈哈11");
+                        let source = poiResult.source;
+                        let poi = poiResult.item;
+                        if (source !== 'search') {
+                            console.log("哈哈哈12");
+                            poiPicker.searchByKeyword(poi.name)
+                        } else {
+                            console.log("哈哈哈3");
+                            poiPicker.clearSearchResults();
+                            vm.markers = [];
+                            let lng = poi.location.lng;
+                            let lat = poi.location.lat;
+                            let address = poi.cityname + poi.adname + poi.name;
+                            vm.center = [lng, lat];
+                            vm.markers.push([lng, lat]);
+                            vm.lng = lng;
+                            vm.lat = lat;
+                            vm.address = address;
+                            vm.searchKey = address
+                        }
+                    })
+                })
+            },
+            searchByHand() {
+                if (this.searchKey !== '') {
+                    console.log("哈哈哈14" + this.searchKey);
+                    this.poiPicker.searchByKeyword(this.searchKey)
+                }
+            },
+            addMarker() {
+                console.log("点击了添加maker");
+                console.log(JSON.stringify(this.markers));
+
+                let marker = {
+                    position: [115.84179 + (Math.random() - 0.5) * 0.02, 28.74188 + (Math.random() - 0.5) * 0.02]
+                };
+                this.markers.push(marker);
+                console.log(JSON.stringify(marker));
+                console.log(JSON.stringify(this.markers));
+            },
+            removeMarker() {
+                if (!this.markers.length) return;
+                this.markers.splice(this.markers.length - 1, 1);
+            }
+        },
+        beforeMount() {
+            this.$http.post('http://localhost:9999/test/queryAllData', {}, {emulateJSON: true}).then(result => {
+                console.log("result.body")
+                console.log(JSON.stringify(result.body));
+                this.positionInfo=result.body;
+                console.log("这是positionInfo")
+                console.log(JSON.stringify(this.positionInfo));
+				console.log("这是positionInfo")
+                for (j = 0; j < result.body.length; j++) {
+                    let marker = {
+                        position: [result.body[j].lon, result.body[j].lat]
+                    };
+                    this.markers.push(marker);
+                }
+
+            })
+        }
+    });
+</script>
+<script>
+</script>
+</body>
+<style lang="css">
+    .container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        left: 50%;
+        top: 50%;
+        transform: translate3d(-50%, -50%, 0);
+        border: 1px solid #999;
+    }
+
+    .search-box {
+        position: absolute;
+        z-index: 5;
+        width: 30%;
+        left: 13%;
+        top: 10px;
+        height: 30px;
+    }
+
+    .search-box input {
+        float: left;
+        width: 80%;
+        height: 100%;
+        border: 1px solid #30ccc1;
+        padding: 0 8px;
+        outline: none;
+    }
+
+    .search-box button {
+        float: left;
+        width: 20%;
+        height: 100%;
+        background: #30ccc1;
+        border: 1px solid #30ccc1;
+        color: #fff;
+        outline: none;
+    }
+
+    .tip-box {
+        width: 100%;
+        max-height: 260px;
+        position: absolute;
+        top: 30px;
+        overflow-y: auto;
+        background-color: #fff;
+    }
+</style>
+
+</html>

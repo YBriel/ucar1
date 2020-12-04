@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('司机信息维护列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>司机id：</label>
+                                <input type="text" name="userId"/>
+                            </li>
+                            <li>
+                                <label>司机姓名：</label>
+                                <input type="text" name="userName"/>
+                            </li>
+                            <li>
+                                <label>司机类型：</label>
+                                <input type="text" name="userTypeName"/>
+                            </li>
+                           
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+               <!--  <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="conf:driver:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="conf:driver:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="conf:driver:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a> -->
+                <!-- <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="conf:driver:export">
+                    <i class="fa fa-download"></i> 导出
+                </a> -->
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('conf:driver:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('conf:driver:remove')}]];
+        var prefix = ctx + "conf/driver";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "司机信息维护",
+                columns: [
+                {
+                    field: 'userId', 
+                    title: '司机id'
+                },
+                {
+                    field: 'userName', 
+                    title: '司机姓名'
+                },
+               
+                {
+                    field: 'userTypeName', 
+                    title: '司机类型'
+                },
+                
+                {
+                    field: 'userStatusName', 
+                    title: '司机状态'
+                },
+                {
+                    field: 'organizationNumber', 
+                    title: '挂靠组织机构编码'
+                },
+                {
+                    field: 'organizationId', 
+                    title: '挂靠组织机构ID'
+                },
+                {
+                    field: 'createTime', 
+                    title: '同步时间'
+                }
+                
+                ]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

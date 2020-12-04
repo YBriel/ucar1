@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改渠道分成配置')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-cooperationConf-edit" th:object="${confCooperationFee}">
+            <input name="id" th:field="*{id}" type="hidden">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">渠道名称：</label>
+               <div class="col-sm-8">
+                    <input name="hotelNameView" class="form-control" onclick="selectDeptTree()" th:value="${@dept.selectDeptLabel(__${confCooperationFee.companyId}__)}" id="hotelNameView" type="text" placeholder="请选择渠道" >
+                    <input name="companyId" id="companyId" th:value="*{companyId}" type="text"  style="display: none;"><!-- style="display: none;" --> 
+                    
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">营运地市：</label>
+               <div class="col-sm-8">
+					<input type="text"  th:value="${@city.selectCityLabel('__${confCooperationFee.cityId}__')}" class="form-control" placeholder="请输入城市..."  id="local_object_data" autocomplete="off" data-provide="typeahead" >
+					<input type="text" id="cityId" name="cityId"  th:value="*{cityId}"  style="display: none;"/>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">业务类型：</label>
+                <div class="col-sm-8">
+                    <select name="orderType" class="form-control m-b" th:with="type=${@dict.getType('order_type')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{orderType}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">车型：</label>
+                <div class="col-sm-8">
+                    <select name="carType" class="form-control m-b" th:with="type=${@dict.getType('car_type')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{carType}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">分成规则：</label>
+               <div class="col-sm-8">
+                    <select name="feeRule" class="form-control m-b" th:with="type=${@dict.getType('fee_rule')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">分成比例：</label>
+                <div class="col-sm-8">
+                    <input name="companyAmount" th:field="*{companyAmount}" class="form-control" type="text">
+                </div>
+            </div>
+          
+            <div class="form-group">
+                <label class="col-sm-3 control-label">备注说明：</label>
+                <div class="col-sm-8">
+                    <textarea name="noteExpr" class="form-control">[[*{noteExpr}]]</textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: bootstrap-suggest-js" />
+    <th:block th:include="include :: bootstrap-typeahead-js" />
+    <script type="text/javascript">
+        var prefix = ctx + "conf/cooperationConf";
+        $("#form-cooperationConf-edit").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/edit", $('#form-cooperationConf-edit').serialize());
+            }
+        }
+        
+        /*用户管理-新增-选择部门树*/
+        function selectDeptTree() {
+        	var treeId = $("#treeId").val();
+        	var deptId = $.common.isEmpty(treeId) ? "210" : $("#treeId").val();
+        	var url = ctx + "system/dept/selectCooperTree/" + deptId;
+			var options = {
+				title: '选择渠道',
+				width: "380",
+				url: url,
+				callBack: doSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        
+        function doSubmit(index, layero){
+			var tree = layero.find("iframe")[0].contentWindow.$._tree;
+			if ($.tree.notAllowParents(tree)) {
+				var body = layer.getChildFrame('body', index);
+    			$("#companyId").val(body.find('#treeId').val());
+    			$("#hotelNameView").val(body.find('#treeName').val());
+    			layer.close(index);
+			}
+		}
+        
+        function selectCityTree() {
+        	var treeId = $("#treeId").val();
+        	var deptId = $.common.isEmpty(treeId) ? "210" : $("#treeId").val();
+        	var url = ctx + "conf/city/getCityTreePage";
+			var options = {
+				title: '选择城市',
+				width: "380",
+				url: url,
+				callBack: doSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        
+       /*  $.get(ctx + "demo/form/collection", function(data){
+	    	$("#typeahead-demo-3").typeahead({
+		        source: data.value
+		    });
+        },'json'); */
+        
+  /*       var localObjectData = [{ id: 1, name: 'beijing' }, { id: 2, name: 'shanghai' }, { id: 3, name: 'guangzhou' }, { id: 4,name: 'sz' }];
+        var objMap = {};
+                    //typeahead只能处理简单的列表，所以要构造一个array string。名称对应的id放到objMap里面；
+                    $("#local_object_data").typeahead({
+                        source: function (query, process) {
+                            var names = [];
+                            $.each(localObjectData, function (index, ele) {
+                                objMap[ele.name] = ele.id;
+                                names.push(ele.name);
+                            });
+                            process(names);//调用处理函数，格式化
+                        },
+                        afterSelect: function (item) {//选中一条数据后的回调函数，此处可以向隐藏域赋值数据id
+                            console.log(objMap[item]);//取出选中项的值
+          					 $("#idc").val(objMap[item]);
+                        }
+                    });
+     */
+        
+       var nameToIdMap = {};//编码对应的id
+        $('#local_object_data').typeahead({
+            source: function (query, process) {
+                //query是输入的值
+                $.ajax({
+                    url: ctx + "conf/city/getCitys",
+                    type: "GET",
+                    dataType: "JSON",
+                    data: {isSubmit:0,workOrderNum:query},
+                    success: function (msg) {
+                    	console.info(msg);
+                            var array = [];
+                            $.each(msg.value, function (index, ele) {
+                            	//console.info('=--'+ele.cityName +"--"+ele.shortCode);
+                                nameToIdMap[ele.cityName] = ele.shortCode;//键值对保存下来。
+                                array.push(ele.cityName);
+                            });
+                            process(array);
+                    }
+                })
+            },
+            minLength: 0,//键入字数多少开始补全
+            showHintOnFocus: "true",//将显示所有匹配项
+            fitToElement: true,//选项框宽度与输入框一致
+            items: 'all',//下拉选项中出现条目的最大数量。也可以设置为“all”
+            autoSelect: true,//允许你决定是否自动选择第一个建议
+            afterSelect: function (item) {
+            	//console.info(item);
+               // console.log(nameToIdMap[item]);//打印对应的id
+               $("#cityId").val(nameToIdMap[item]);
+                //$('#workModelOrderForm [name="workOrderId"]').val(nameToIdMap[item]);
+            },
+            delay: 500//在查找之间添加延迟
+        });
+    
+    </script>
+</body>
+</html>

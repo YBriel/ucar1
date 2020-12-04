@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+	<th:block th:include="include :: header('radio表格页')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+      <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId" th:object="${confCpRule}">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>规则名称：</label>
+                                 <input name="ruleName" id="roleName" type="text" placeholder="请输入规则名称" >
+                                 <input name="opertionLevel" id="opertionLevel" th:field="*{opertionLevel}" class="form-control" type="hidden">
+                            </li>
+                           
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+		<div class="row">
+			<div class="col-sm-12 select-table table-striped">
+				<table id="bootstrap-table"></table>
+			</div>
+		</div>
+	</div>
+    <div th:include="include :: footer"></div>
+    <script th:inline="javascript">
+        var prefix = ctx + "conf/cpFeeRule";
+        var datas = [[${@dict.getType('sys_normal_disable')}]];
+
+        $(function() {
+            var optionsLevel2 = {
+                url: prefix + "/listCommon",
+		        showSearch: false,
+		        showRefresh: false,
+		        showToggle: false,
+		        showColumns: false,
+                columns: [{
+		            radio: true
+		        },
+		        {
+                    field: 'id', 
+                    title: 'null',
+                    visible: false
+                },
+				{
+					field : 'ruleName', 
+					title : '分成规则'
+				},
+				{
+					field : 'privinceRatio', 
+					title : '一级分成比例%'
+				},
+				{
+					field : 'cityRatio', 
+					title : '二级分成比例%'
+				},
+				{
+					field : 'noteExpr', 
+					title : '备注'
+				}]
+            };
+            
+            var optionsLevel3 = {
+                    url: prefix + "/listCommon",
+    		        showSearch: false,
+    		        showRefresh: false,
+    		        showToggle: false,
+    		        showColumns: false,
+                    columns: [{
+    		            radio: true
+    		        },
+    		        {
+                        field: 'id', 
+                        title: 'null',
+                        visible: false
+                    },
+    				{
+    					field : 'ruleName', 
+    					title : '分成规则'
+    				},
+    				{
+    					field : 'privinceRatio', 
+    					title : '一级分成比例%'
+    				},
+    				{
+    					field : 'cityRatio', 
+    					title : '二级分成比例%'
+    				},
+    				{
+    					field : 'countyRatio', 
+    					title : '三级分成比例%'
+    				},
+    				{
+    					field : 'noteExpr', 
+    					title : '备注'
+    				}]
+                };
+            
+            var opertioneLeve = $("#opertionLevel").val();
+            if(opertioneLeve ==3){
+            	$.table.init(optionsLevel3);
+            }
+ 			if(opertioneLeve ==2){
+ 				$.table.init(optionsLevel2);
+            }
+        });
+        
+        /* 添加用户-选择用户-提交 */
+		function submitHandler() {
+			var rows = $.table.selectFirstColumns();
+			var ruleName = $.table.selectColumns("ruleName");
+			if (rows.length == 0) {
+       			$.modal.alertWarning("请至少选择一条记录");
+       			return;
+       		}
+			
+			// 父页面的方法
+			// parent.selectUsers();
+			// 父页面的变量
+			parent.$('#feeRuleId').val(rows);
+			parent.$('#feeRuleName').val(ruleName);
+			$.modal.close();
+		}
+    </script>
+</body>
+</html>

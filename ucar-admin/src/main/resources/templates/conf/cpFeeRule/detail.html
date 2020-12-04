@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改cp分成规则配置')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-cpFeeRule-edit" th:object="${confCpRule}">
+            <input name="id" th:field="*{id}" type="hidden">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">规则名称：</label>
+                <div class="col-sm-8">
+                   <input name="privinceRatio" th:field="*{ruleName}" class="form-control" type="text">
+                </div>
+            </div>
+              <div class="form-group">    
+                <label class="col-sm-3 control-label">规则级别：</label>
+                <div class="col-sm-8">
+                    <select name="cfgType" disabled="disabled" class="form-control m-b" th:with="type=${@dict.getType('cp_fee_rule_type')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{cfgType}"></option>
+                    </select>
+                </div>
+            </div>
+             <div class="form-group">    
+                <label class="col-sm-3 control-label">运营商级别：</label>
+                <div class="col-sm-8">
+                    <select name="opertionLevel"  disabled="disabled" id="opertionLevel"  class="form-control m-b"  th:with="type=${@dict.getType('opertion_level')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{opertionLevel}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">一级分成比例(%)：</label>
+                <div class="col-sm-8">
+                    <input name="privinceRatio" disabled="disabled"  th:field="*{privinceRatio}" class="form-control" type="number" min="0">
+                </div>
+            </div>
+            
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">二级分成比例(%)：</label>
+                <div class="col-sm-8">
+                    <input name="cityRatio" disabled="disabled"  th:field="*{cityRatio}" class="form-control" type="number" min="0">
+                </div>
+            </div>
+            <div class="form-group" id="thirdOpertion">    
+                <label class="col-sm-3   control-label">三级分成比例(%)：</label>
+                <div class="col-sm-8">
+                    <input name="countyRatio" disabled="disabled" th:field="*{countyRatio}" class="form-control" type="number" min="0">
+                </div>
+            </div>
+          
+            <div class="form-group">
+                <label class="col-sm-3  control-label">备注描述：</label>
+                <div class="col-sm-8">
+                    <textarea name="noteExpr" disabled="disabled"  class="form-control">[[*{noteExpr}]]</textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "conf/cpFeeRule";
+        $("#form-cpFeeRule-edit").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            
+        }
+        
+        $(document).ready(function(){  
+         	var id = $('#opertionLevel').val();
+         	 if(id == 2){
+				  $("#thirdOpertion").hide();
+			  }
+			  if(id == 3){
+				  $("#thirdOpertion").show();
+			  }
+			  $("#opertionLevel").selectReadOnly();
+        }
+     	 )  
+    </script>
+</body>
+</html>

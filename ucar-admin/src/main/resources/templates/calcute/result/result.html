@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org"
+	xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+<th:block th:include="include :: header('核算结果列表')" />
+</head>
+<body class="gray-bg">
+	<div class="container-div">
+		<div class="row">
+			<div class="col-sm-12 search-collapse">
+				<form id="formId">
+					<div class="select-list">
+						<ul>
+							
+							
+							<li>
+								订单来源：<select name="origin" th:with="type=${@dict.getType('order_source')}">
+									<option value="">所有</option>
+									<option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+								</select>
+							</li>
+							
+                          
+							<li><label>订单来源细类：</label>
+									<input name="orderSourceMarkDesr" onclick="selectDeptTree()"
+										id="orderSourceMarkDesr" type="text" placeholder="请选择二级机构"> 
+									<input name="orderSourceMark" id="orderSourceMark" type="text" style="display: none;" >
+								</li>
+							 <li class="select-time">
+                                <label>支付月份：</label>
+                                 <input type="text" name="orderMonth" id="orderMonth" class="form-control">
+                             
+                            </li>
+                            
+							<li><label>订单编号：</label> <input type="text" name="orderId" />
+							</li>
+							<li><label>司机id：</label> <input type="text" name="driverId" />
+							</li>
+							<li><label>运营商：</label> <input type="text"
+								name="provinceId" /></li>
+							
+							<li><a class="btn btn-primary btn-rounded btn-sm"
+								onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+								<a class="btn btn-warning btn-rounded btn-sm"
+								onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+							</li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div class="btn-group-sm" id="toolbar" role="group">
+				<a class="btn btn-warning" onclick="$.table.exportExcel()"
+					shiro:hasPermission="calcute:result:export"> <i
+					class="fa fa-download"></i> 导出
+				</a>
+			</div>
+			<div class="col-sm-12 select-table table-bordered">
+				<table id="bootstrap-table"></table>
+			</div>
+		</div>
+	</div>
+	<th:block th:include="include :: footer" />
+	<script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('calcute:result:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('calcute:result:remove')}]];
+        var prefix = ctx + "calcute/result";
+        var datas = [[${@dict.getType('order_source')}]];
+        var clientTypeDatas = [[${@dict.getType('client_type')}]];
+        var deptDatas = [[${@dept.selectDeptList()}]];
+        var cpDatas = [[${@cp.selectCpConfList()}]];
+        
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "核算结果",
+                columns: [
+					[{
+						title : '基本信息',
+						align : 'center',
+						colspan : 7
+					}, {
+						title : '订单原始金额',
+						align : 'center',
+						colspan : 5
+					},{
+						title : '运营商信息',
+						align : 'center',
+						colspan : 6
+					},
+					{
+						title : '司机分成',
+						align : 'center',
+						colspan : 3
+					},
+					{
+						title : '渠道分成',
+						align : 'center',
+						colspan : 1
+					},
+					{
+						title : '推荐奖励',
+						align : 'center',
+						colspan : 4
+					},
+					{
+						title : '结余',
+						align : 'center',
+						colspan : 2
+					}
+					],
+                          
+               [
+                {
+                    field: 'orderId', 
+                    title: '订单编号'
+                }, {
+                    field: 'origin', 
+                    title: '订单来源',
+                    formatter: function(value, row, index) {
+                         	return $.table.selectDictLabel(datas, value);
+                    }
+                },
+                {
+                    field: 'orderSourceMark', 
+                    title: '订单来源细类',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDeptLabel(deptDatas, value);
+                }
+                },
+                {
+                    field: 'clientType', 
+                    title: '下单方式',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDictLabel(clientTypeDatas, value);
+                }
+                },
+                {
+                    field: 'orderTime', 
+                    title: '下单时间'
+                },
+                {
+                    field: 'payTime', 
+                    title: '支付时间'
+                }
+                ,
+                {
+                    field: 'driverId', 
+                    title: '司机id'
+                },
+                {
+                    field: 'totalMoney', 
+                    title: '订单总额'
+                },
+                {
+                    field: 'orderMoney', 
+                    title: '订单应付金额'
+                },
+                {
+                    field: 'realReceiptMoney', 
+                    title: '订单实付金额'
+                },
+                {
+                    field: 'benfitMoney', 
+                    title: '订单优惠金额'
+                },
+                {
+                    field: 'couponid', 
+                    title: '优惠券编号'
+                },
+                {
+                    field: 'provinceId', 
+                    title: '省运营',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectCPLabel(cpDatas, value);
+                    }
+                },
+                {
+                    field: 'cityId', 
+                    title: '市运营商/市DMP',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectCPLabel(cpDatas, value);
+                    }
+                },
+                {
+                    field: 'countyId', 
+                    title: '县DMP',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectCPLabel(cpDatas, value);
+                    }
+                },
+                {
+                    field: 'provinceFee', 
+                    title: '省运营商提成'
+                },
+                {
+                    field: 'cityFee', 
+                    title: '市运营商/市DMP提成'
+                },
+                {
+                    field: 'countyFee', 
+                    title: '县DMP提成'
+                },
+                {
+                    field: 'driverOrderFee', 
+                    title: '司机订单提成'
+                },
+                {
+                    field: 'driverToComapnyOrPlatFee', 
+                    title: '额外给予CP或平台费'
+                },
+                {
+                    field: 'driverRealFee', 
+                    title: '司机实际提成'
+                },
+                {
+                    field: 'aggregationPlatFee', 
+                    title: '渠道分成'
+                },
+                
+                {
+                    field: 'recommender', 
+                    title: '推荐人',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDeptLabel(deptDatas, value);
+                    }
+                },
+                {
+                    field: 'recommenderFee', 
+                    title: '推荐人奖励'
+                },
+                {
+                    field: 'aggrRecommenderFee', 
+                    title: '渠道承担推荐费'
+                },
+                {
+                    field: 'platRecommenderFee', 
+                    title: '平台承担推荐费'
+                },
+                {
+                    field: 'platFee', 
+                    title: '平台结余'
+                },
+                {
+                	field: 'createTime',
+                	title: '核算时间'
+                }]]
+            };
+            $.table.init(options);
+        });
+        function rowStyle(row, index) {
+
+        	var style = {};
+        	if(row == 0){
+        		style = { css: { 'color': '#ed5565' } };
+        		return style;
+        	}
+        	return style;
+        }
+        
+        /*用户管理-新增-选择部门树*/
+        function selectDeptTree() {
+        	var treeId = $("#treeId").val();
+        	var deptId = $.common.isEmpty(treeId) ? "210" : $("#treeId").val();
+        	var url = ctx + "system/dept/selectHotelDeptTreeForQuery/" + deptId;
+			var options = {
+				title: '选择部门',
+				width: "380",
+				url: url,
+				callBack: doSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        
+        function doSubmit(index, layero){
+			var tree = layero.find("iframe")[0].contentWindow.$._tree;
+				var body = layer.getChildFrame('body', index);
+    			$("#orderSourceMark").val(body.find('#treeId').val());
+    			$("#orderSourceMarkDesr").val(body.find('#treeName').val());
+    			layer.close(index);
+		}
+        
+    </script>
+     <th:block th:include="include :: datetimepicker-js" />
+     <th:block th:include="include :: datetimepicker-css" />
+    <script type="text/javascript">
+        $(function(){
+        	<!-- datetimepicker示例 -->
+        	$("#orderMonth").datetimepicker({
+       		    format: "yyyy-mm",
+       		    minView:3,
+       		 	startView:3,
+       		    autoclose: true
+       		});
+        	
+        	$("#datetimepicker-demo-3").datetimepicker({
+       		    format: "yyyy-mm-dd hh:ii:ss",
+       		    autoclose: true
+       		});
+        	
+        	$('.form_date').datetimepicker({
+        		format: "yyyy-mm-dd",
+       		    minView: "month",
+       		    autoclose: true
+            });
+        	
+        	$("#datetimepicker-startTime").datetimepicker({
+        		format: 'yyyy-mm-dd',
+        		minView: "month",
+        	    todayBtn:  true,
+        	    autoclose: true,
+        		endDate : new Date(),
+        	}).on('changeDate', function(event) {
+        		event.preventDefault();
+        		event.stopPropagation();
+        		var startTime = event.date;
+        		$('#datetimepicker-endTime').datetimepicker('setStartDate', startTime);
+        	});
+        	
+        	$("#datetimepicker-endTime").datetimepicker({
+        		format: 'yyyy-mm-dd',
+        		minView: "month",
+        		todayBtn:  true,
+        		autoclose: true,
+        		endDate : new Date(),
+        	}).on('changeDate', function(event) {
+        		event.preventDefault();
+        		event.stopPropagation();
+        		var endTime = event.date;
+        		$("#datetimepicker-startTime").datetimepicker('setEndDate', endTime);
+        	});
+        	
+        	<!-- laydate示例 -->
+        	layui.use('laydate', function(){
+       		  var laydate = layui.laydate;
+       		  
+       		  laydate.render({
+       		    elem: '#laydate-demo-1'
+       		  });
+       		  
+       		  laydate.render({ 
+       		    elem: '#laydate-demo-2',
+       		    type: 'date'
+       		  });
+       		  
+       		  laydate.render({ 
+       		    elem: '#laydate-demo-3',
+       		    type: 'datetime',
+       		    trigger: 'click'
+       		  });
+       		  
+       		  laydate.render({
+       		    elem: '#laydate-demo-4',
+       		    range: true
+       		  });
+       		  
+       		  var startDate = laydate.render({
+		        elem: '#laydate-startTime',
+		        max: $('#laydate-endTime').val(),
+		        theme: 'molv',
+		        trigger: 'click',
+		        done: function(value, date) {
+		            // 结束时间大于开始时间
+		            if (value !== '') {
+		                endDate.config.min.year = date.year;
+		                endDate.config.min.month = date.month - 1;
+		                endDate.config.min.date = date.date;
+		            } else {
+		                endDate.config.min.year = '';
+		                endDate.config.min.month = '';
+		                endDate.config.min.date = '';
+		            }
+		        }
+		      });
+       		
+		      var endDate = laydate.render({
+		        elem: '#laydate-endTime',
+		        min: $('#laydate-startTime').val(),
+		        theme: 'molv',
+		        trigger: 'click',
+		        done: function(value, date) {
+		            // 开始时间小于结束时间
+		            if (value !== '') {
+		                startDate.config.max.year = date.year;
+		                startDate.config.max.month = date.month - 1;
+		                startDate.config.max.date = date.date;
+		            } else {
+		                startDate.config.max.year = '';
+		                startDate.config.max.month = '';
+		                startDate.config.max.date = '';
+		            }
+		        }
+		      });
+       	   });
+        });
+    </script>
+</body>
+</html>

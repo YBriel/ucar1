@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('核算结果列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                       		 <li>
+                                <label>渠道来源：</label>
+                               <select name="origin" th:with="type=${@dict.getType('order_source')}">
+									<option value="">所有</option>
+									<option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+								</select>
+                            </li>
+                            <li>
+                                <label>运营商类型：</label>
+                                <select name="cpType" th:with="type=${@dict.getType('cp_type')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                             <li>
+                                <label>订单编号：</label>
+                                <input type="text" name="orderId"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="calcute:cp:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('calcute:cp:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('calcute:cp:remove')}]];
+        var originDatas = [[${@dict.getType('order_source')}]];
+        var orderSourceMarkDatas = [[${@dict.getType('order_source')}]];
+        var clientTypeDatas = [[${@dict.getType('client_type')}]];
+        var cpTypeDatas = [[${@dict.getType('cp_type')}]];
+        var cpfeeRuleIdDatas = [[${@dict.getType('cp_fee_rule')}]];
+        var cpDatas = [[${@cp.selectCpConfList()}]];
+        var driversDatas = [[${@driver.selectList()}]];
+        var prefix = ctx + "calcute/cp";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "核算结果",
+                columns: [
+                          {
+                              field: 'provinceId', 
+                              title: '一级运营商',
+                              formatter: function(value, row, index) {
+                               	return $.table.selectCPLabel(cpDatas, value);
+                              }
+                          },
+                          {
+                              field: 'cityId', 
+                              title: '二级运营商',
+                              formatter: function(value, row, index) {
+                               	return $.table.selectCPLabel(cpDatas, value);
+                              }
+                          },
+                          {
+                              field: 'countyId', 
+                              title: '三级运营商',
+                              formatter: function(value, row, index) {
+                               	return $.table.selectCPLabel(cpDatas, value);
+                              }
+                          },         
+                {
+                    field: 'orderId', 
+                    title: '订单编号'
+                },
+                {
+                    field: 'driverId', 
+                    title: '司机id',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDriverNameLabel(driversDatas, value);
+                    }
+                },
+                {
+                    field: 'origin', 
+                    title: '渠道来源',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(originDatas, value);
+                    }
+                },
+                {
+                    field: 'clientType', 
+                    title: '客户端类型',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(clientTypeDatas, value);
+                    }
+                },
+                {
+                    field: 'totalMoney', 
+                    title: '订单总额'
+                },
+                {
+                    field: 'orderMoney', 
+                    title: '订单应付金额'
+                },
+                {
+                    field: 'realReceiptMoney', 
+                    title: '订单实付金额'
+                },
+                {
+                    field: 'benfitMoney', 
+                    title: '订单优惠金额'
+                },
+                {
+                    field: 'provinceFee', 
+                    title: '一级运营商分成'
+                },
+                {
+                    field: 'cityFee', 
+                    title: '二级运营商分成'
+                },
+                {
+                    field: 'countyFee', 
+                    title: '三级运营商分成'
+                },
+                {
+                    field: 'orderTime', 
+                    title: '下单时间'
+                },
+                {
+                    field: 'createTime', 
+                    title: '计算时间'
+                }
+                
+               ]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

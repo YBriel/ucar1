@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('confCP列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                          
+                            <li>
+                                <label>组织机构名称：</label>
+                                <input type="text" name="organizationName"/>
+                            </li>
+                           
+                            <li>
+                                <label>组织机构类型名称：</label>
+                                <select name="organizationType" th:with="type=${@dict.getType('cp_type')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                           
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+               <!--  <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="conf:cp:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="conf:cp:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="conf:cp:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a> -->
+              <!--   <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="conf:cp:export">
+                    <i class="fa fa-download"></i> 导出
+                </a> -->
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('conf:cp:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('conf:cp:remove')}]];
+        var prefix = ctx + "conf/cp";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "confCP",
+                columns: [
+                {
+                    field: 'organizationNumber', 
+                    title: '机构编码'
+                },
+                {
+                    field: 'organizationName', 
+                    title: '机构名称'
+                },
+                {
+                    field: 'rootName', 
+                    title: '上级机构名称'
+                },
+                {
+                    field: 'rootId', 
+                    title: '上级机构ID'
+                },
+                {
+                    field: 'organizationTypeName', 
+                    title: '机构类型'
+                },
+                {
+                    field: 'address', 
+                    title: '机构地址'
+                },
+                {
+                    field: 'establishedTime', 
+                    title: '成立时间'
+                },
+                {
+                    field: 'organizationTel', 
+                    title: '联系电话'
+                },
+                {
+                    field: 'principal', 
+                    title: '联系人'
+                },
+                {
+                    field: 'status', 
+                    title: '营业状态'
+                },
+                {
+                    field: 'remark', 
+                    title: '备注'
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

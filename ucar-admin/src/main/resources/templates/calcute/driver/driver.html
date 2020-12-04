@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('核算结果列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                           
+                            <li>
+								订单来源：
+								<select name="origin" th:with="type=${@dict.getType('order_source')}">
+									<option value="">所有</option>
+									<option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+								</select>
+							</li>
+							 <li>
+                                <label>下单方式：</label>
+                               <select name="origin" th:with="type=${@dict.getType('client_type')}">
+									<option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+								</select>
+                            </li>
+							 <li>
+                                <label>订单编号：</label>
+                                <input type="text" name="orderId"/>
+                            </li>
+                            <li>
+                                <label>司机id：</label>
+                                <input type="text" name="driverId"/>
+                            </li>
+                           
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="calcute:driver:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('calcute:driver:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('calcute:driver:remove')}]];
+        var driversDatas = [[${@driver.selectList()}]];
+        var cpDatas = [[${@cp.selectCpConfList()}]];
+        var deptDatas = [[${@dept.selectDeptList()}]];
+        var prefix = ctx + "calcute/driver";
+        var datas = [[${@dict.getType('order_source')}]];
+        var clientTypeDatas = [[${@dict.getType('client_type')}]];
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "核算结果",
+                columns: [
+                {
+                    field: 'id', 
+                    title: 'null',
+                    visible: false
+                },
+                {
+                    field: 'driverId', 
+                    title: '司机姓名',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDriverNameLabel(driversDatas, value);
+                    }
+                },
+                {
+                    field: 'driverId', 
+                    title: '司机类型',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDriverTypeLabel(driversDatas, value);
+                    }
+                },
+                {
+                    field: 'organizationId', 
+                    title: '挂靠运营商',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectCPLabel(cpDatas, value);
+                    }
+                },
+                {
+                    field: 'driverId', 
+                    title: '司机id'
+                },
+                
+                {
+                    field: 'origin', 
+                    title: '渠道来源',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDictLabel(datas, value);
+               		}
+                },
+                {
+                    field: 'orderId', 
+                    title: '订单编号'
+                },
+                {
+                    field: 'clientType', 
+                    title: '下单方式',
+                    formatter: function(value, row, index) {
+                     	return $.table.selectDictLabel(clientTypeDatas, value);
+               		}
+                },
+                {
+                    field: 'orderTime', 
+                    title: '下单时间'
+                },
+                {
+                    field: 'totalMoney', 
+                    title: '订单总额'
+                },
+                {
+                    field: 'orderMoney', 
+                    title: '订单应付金额'
+                },
+                {
+                    field: 'realReceiptMoney', 
+                    title: '订单实付金额'
+                },
+                {
+                    field: 'benfitMoney', 
+                    title: '订单优惠金额'
+                },
+                {
+                    field: 'driverOrderFee', 
+                    title: '司机订单提成'
+                },
+                {
+                    field: 'driverToComapnyOrPlatFee', 
+                    title: '分滩给CP或平台'
+                },
+                {
+                    field: 'driverRealFee', 
+                    title: '司机最终分成'
+                },
+                {
+                    field: 'createTime', 
+                    title: '计算时间'
+                }]
+            };
+            $.table.init(options);
+        });
+        
+        function selectDeptTree() {
+        	var treeId = $("#treeId").val();
+        	var deptId = $.common.isEmpty(treeId) ? "210" : $("#treeId").val();
+        	var url = ctx + "system/dept/selectHotelDeptTreeForQuery/" + deptId;
+			var options = {
+				title: '选择部门',
+				width: "380",
+				url: url,
+				callBack: doSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        
+        function doSubmit(index, layero){
+			var tree = layero.find("iframe")[0].contentWindow.$._tree;
+				var body = layer.getChildFrame('body', index);
+    			$("#orderSourceMark").val(body.find('#treeId').val());
+    			$("#orderSourceMarkDesr").val(body.find('#treeName').val());
+    			layer.close(index);
+		}
+    </script>
+</body>
+</html>

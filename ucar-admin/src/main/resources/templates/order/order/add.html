@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增原始订单')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-order-add">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">订单号：</label>
+                <div class="col-sm-8">
+                    <input name="orderId" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">订单状态：</label>
+                <div class="col-sm-8">
+                    <select name="status" class="form-control m-b" th:with="type=${@dict.getType('order_status')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">订单来源：</label>
+                <div class="col-sm-8">
+                    <select name="origin" class="form-control m-b" th:with="type=${@dict.getType('order_source')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">订单来源明细：</label>
+                <div class="col-sm-8">
+                    <select name="ordersourcemark" class="form-control m-b">
+                        <option value="">所有</option>
+                    </select>
+                    <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">客户端类型：</label>
+                <div class="col-sm-8">
+                    <select name="clienttype" class="form-control m-b">
+                        <option value="">所有</option>
+                    </select>
+                    <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">用车城市：</label>
+                <div class="col-sm-8">
+                    <input name="city" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">是否推荐订单：</label>
+                <div class="col-sm-8">
+                    <select name="isRecommend" class="form-control m-b" th:with="type=${@dict.getType('sys_switch')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">推荐人：</label>
+                <div class="col-sm-8">
+                    <input name="recommender" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">司机id：</label>
+                <div class="col-sm-8">
+                    <input name="driverId" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">乘客id：</label>
+                <div class="col-sm-8">
+                    <input name="accountId" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">支付状态：</label>
+                <div class="col-sm-8">
+                    <div class="radio-box" th:each="dict : ${@dict.getType('pay_status')}">
+                        <input type="radio" th:id="${'payStatus_' + dict.dictCode}" name="payStatus" th:value="${dict.dictValue}" th:checked="${dict.default}">
+                        <label th:for="${'payStatus_' + dict.dictCode}" th:text="${dict.dictLabel}"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">支付类型：</label>
+                <div class="col-sm-8">
+                    <select name="payType" class="form-control m-b" th:with="type=${@dict.getType('pay_type')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">订单总额：</label>
+                <div class="col-sm-8">
+                    <input name="totalMoney" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">应收金额：</label>
+                <div class="col-sm-8">
+                    <input name="orderMoney" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">实收金额：</label>
+                <div class="col-sm-8">
+                    <input name="realReceiptMoney" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">优惠金额：</label>
+                <div class="col-sm-8">
+                    <input name="benfitPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">优惠券id：</label>
+                <div class="col-sm-8">
+                    <input name="couponId" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">起步费：</label>
+                <div class="col-sm-8">
+                    <input name="startPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">里程费：</label>
+                <div class="col-sm-8">
+                    <input name="milesPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">时长费：</label>
+                <div class="col-sm-8">
+                    <input name="durationPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">预约服务费：</label>
+                <div class="col-sm-8">
+                    <input name="bookTip" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">早高峰加收费用：</label>
+                <div class="col-sm-8">
+                    <input name="morningPeakPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">晚高峰加收费用：</label>
+                <div class="col-sm-8">
+                    <input name="eveningPeakPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">其他高峰加收费用：</label>
+                <div class="col-sm-8">
+                    <input name="otherPeakPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">低速加收费用：</label>
+                <div class="col-sm-8">
+                    <input name="lowSpeedPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">夜间加收费用：</label>
+                <div class="col-sm-8">
+                    <input name="nightUpPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">远途加价：</label>
+                <div class="col-sm-8">
+                    <input name="farUpPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">其他加价：</label>
+                <div class="col-sm-8">
+                    <input name="otherUpPrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">出城费：</label>
+                <div class="col-sm-8">
+                    <input name="outChargePrice" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">取消费：</label>
+                <div class="col-sm-8">
+                    <input name="cancelFee" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">车型：</label>
+                <div class="col-sm-8">
+                    <select name="carType" class="form-control m-b" th:with="type=${@dict.getType('car_type')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">业务类型：</label>
+                <div class="col-sm-8">
+                    <select name="businessType" class="form-control m-b" th:with="type=${@dict.getType('order_type')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">订单创建时间：</label>
+                <div class="col-sm-8">
+                    <div class="input-group date">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input name="orderTime" class="form-control" placeholder="yyyy-MM-dd" type="text">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">订单支付时间：</label>
+                <div class="col-sm-8">
+                    <div class="input-group date">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input name="payTime" class="form-control" placeholder="yyyy-MM-dd" type="text">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: datetimepicker-js" />
+    <script type="text/javascript">
+        var prefix = ctx + "order/order"
+        $("#form-order-add").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/add", $('#form-order-add').serialize());
+            }
+        }
+
+        $("input[name='orderTime']").datetimepicker({
+            format: "yyyy-mm-dd",
+            minView: "month",
+            autoclose: true
+        });
+
+        $("input[name='payTime']").datetimepicker({
+            format: "yyyy-mm-dd",
+            minView: "month",
+            autoclose: true
+        });
+    </script>
+</body>
+</html>

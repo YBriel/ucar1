@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增cp分成规则配置')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-cpFee-add">
+             <div class="form-group">    
+                <label class="col-sm-3 control-label">运营商：</label>
+                <div class="col-sm-8">
+                     <input name="cpNameView" onclick="selectCpTree()" id="cpNameView" type="text" class="form-control" required placeholder="请选择运营商" >
+                    <input name="operatorCode" id="operatorCode" type="text"  style="display: none;">
+                    <input name="operatorType" id="operatorType" type="text" style="display: none;"><!--  style="display: none;" -->
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">渠道来源：</label>
+                <div class="col-sm-8">
+                    <input name="hotelNameView" onclick="selectDeptTree()" id="hotelNameView" required type="text" class="form-control"  placeholder="请选择订单来源" >
+                    <input name="orderSource" id="orderSource" type="text"  style="display: none;">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">司机类型：</label>
+                <div class="col-sm-8">
+                    <select name="driverType" th:with="type=${@dict.getType('driver_type')}" required class="form-control m-b">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">服务类型：</label>
+                <div class="col-sm-8">
+                   <select name="orderType" th:with="type=${@dict.getType('order_type')}" required class="form-control m-b">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                   </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">车型：</label>
+                <div class="col-sm-8">
+                     <select name="carType" th:with="type=${@dict.getType('car_type')}" required class="form-control m-b">
+                           <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                      </select>
+                </div>
+            </div>
+             <input name="opertionLeve" id="opertionLeve" class="form-control" type="hidden">
+           
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">分成规则类型：</label>
+                <div class="col-sm-8">
+                    <select name="feeRuleType"  id="feeRuleType"  th:with="type=${@dict.getType('cp_fee_rule_type')}" class="form-control m-b">
+                     	   <option value="0">请选择</option>
+                           <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+             <div class="form-group" id="ruleNameDiv">    
+                <label class="col-sm-3 control-label">规则名称：</label>
+                <div class="col-sm-8">
+                    <input name="feeRuleId" id="feeRuleId"  class="form-control" type="hidden">
+                    <input name="feeRuleName" id="feeRuleName"  class="form-control">
+                </div>
+            </div>
+            
+             <div class="form-group" id="selfDefineDiv">    
+                <label class="col-sm-3 control-label"></label>
+                <div class="col-sm-8">
+                	
+                   	一级比例： <input name="privinceRatio" id="privinceRatio"  required  type="number" min="0" style="width: 60px;" > % &nbsp;&nbsp;
+                   	二级比例： <input name="cityRatio" id="cityRatio"  required  type="number" min="0" style="width: 60px;" > %&nbsp;&nbsp;
+                   	<span id="threeLevelDiv">三级比例： <input name="countyRatio" id="countyRatio"  required  type="number" min="0" style="width: 60px;" > %</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">备注：</label>
+                <div class="col-sm-8">
+                    <textarea name="exprNote" class="form-control"></textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "conf/cpFee"
+        $("#form-cpFee-add").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/add", $('#form-cpFee-add').serialize());
+            }
+        }
+        
+        function selectCpTree() {
+        	var treeId = $("#treeId").val();
+        	var deptId = $.common.isEmpty(treeId) ? "210" : $("#treeId").val();
+        	var url = ctx + "conf/cp/selectCPTree";
+			var options = {
+				title: '选择运营商',
+				width: "380",
+				url: url,
+				callBack: doCpSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        
+        function doCpSubmit(index, layero){
+        	var body = layer.getChildFrame('body', index);
+        	var tree = layero.find("iframe")[0].contentWindow.$._tree;
+        	var title = body.find('#treeTitle').val();
+        	var opertionType = title.split("_")[0];
+        	var operatorCode = title.split("_")[1];
+        	if(opertionType == 10){
+        		$.modal.msgError("不允许对省级运营商进行配置");
+        		return false;
+        	}
+        	//var id = body.find('#treeId').val();
+        	$("#operatorType").val(opertionType);
+			$("#operatorCode").val(operatorCode);
+        	$("#cpNameView").val(body.find('#treeName').val());
+        	var level = 2;
+        	if(opertionType == 40){
+			    level = 3;
+			 }
+        	$("#opertionLeve").val(level);
+        	layer.close(index);
+        }
+        
+        /*用户管理-新增-选择部门树*/
+        function selectDeptTree() {
+        	var treeId = $("#treeId").val();
+        	var deptId = $.common.isEmpty(treeId) ? "210" : $("#treeId").val();
+        	var url = ctx + "system/dept/selectOriginTree";
+			var options = {
+				title: '选择渠道',
+				width: "380",
+				url: url,
+				callBack: doSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        
+        function doSubmit(index, layero){
+			var tree = layero.find("iframe")[0].contentWindow.$._tree;
+			if ($.tree.notAllowParents(tree)) {
+				var body = layer.getChildFrame('body', index);
+				var id = body.find('#treeId').val() == -1 ? "*" : body.find('#treeId').val();
+    			$("#orderSource").val(id);
+    			$("#hotelNameView").val(body.find('#treeName').val());
+    			layer.close(index);
+			}
+		}
+        var prefixRule = ctx + "conf/cpFeeRule";
+       　	 $(document).ready(function(){
+       　		 $("#ruleNameDiv").hide();
+       　		 $("#selfDefineDiv").hide();
+       　		 
+   	　　　　$('#feeRuleType').change(function(){  
+   			  var opertionType = $("#operatorType").val();
+   	　　　　　　var id = $(this).children('option:selected').val();
+   			  var level = $("#opertionLeve").val();
+   			  
+   			  if(id ==0){
+   				 $("#ruleNameDiv").hide();
+       　		 	 $("#selfDefineDiv").hide();
+   			  }
+   			  if(id == 2 || id ==3){
+   				 var isEmpty = $.common.isEmpty(opertionType);
+   				 if(isEmpty){
+    			  	$.modal.msgError("请先选择需要配置的运营商!");
+         			return false;
+    			 }
+   			  }
+   			  
+   			  if(id == 2){ //通用规则选择
+   				 $("#ruleNameDiv").show();
+   				 $.modal.open("选择CP分成规则", prefixRule + "/commPage/" + level);
+   			  }
+   			  
+   			  
+   			  
+   			  if(id == 3){
+   				 $("#ruleNameDiv").show();
+   				 $("#selfDefineDiv").show();
+   				 if(level == 3){
+   					 $("#threeLevelDiv").show();
+   				 }else{
+   					 $("#threeLevelDiv").hide();
+   				 }
+   			  }
+   	　　　　})  
+   	})  
+    </script>
+</body>
+</html>
