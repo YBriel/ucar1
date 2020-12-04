@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.yzcx.ucar.common.utils.StringUtils;
-import com.yzcx.ucar.web.controller.utils.entity.DevicePageInfo;
-import com.yzcx.ucar.web.controller.utils.entity.DevicePosition;
-import com.yzcx.ucar.web.controller.utils.entity.PageDevice;
+import com.yzcx.ucar.web.controller.utils.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,7 +24,7 @@ import java.util.*;
 public class TokenUtil {
 
     private static RestTemplate restTemplate;
-    private static String token;
+    private static String token="eyJhbGciOiJIUzUxMiJ9.eyJhdWQiOiJ5enp4Iiwic3ViIjoiWVpaWHloYmIwNiIsImlhdCI6MTYwNzA1OTgyOSwiZXhwIjoxNjA5NjUxODI5fQ.XzKlycGFXl5BlQi9PscMHjVs_Xyt3iIyowXGTaCbz8MqH65vj2W8HM5EqD9EM2vTiu5wtoVQkoClS5asR5jerA";
 
     static {
         restTemplate=new RestTemplate();
@@ -97,11 +95,52 @@ public class TokenUtil {
       return  listCurrentPos(pageDevices);
     }
 
+    public static  List<DayTravel> queryDayTravel(String deviceId, String time){
+        String url="https://yhbb.hp888.com/open-api-test/travel/queryDayTravel?deviceId={deviceId}&time={time}"; //2020-11-26
+        HttpHeaders httpHeaders=new HttpHeaders();
+        if(StringUtils.isEmpty(token)){
+            token=getToken();
+        }
+        httpHeaders.add("Authorization","Bearer "+token);
+        Map<String,String> params1=new HashMap<>();
+        params1.put("deviceId",deviceId);
+        params1.put("time",time);
+        HttpEntity<String> request = new HttpEntity<>(null, httpHeaders);
+        String  postForObject = restTemplate.postForObject(url,request, String.class,params1);
+        System.out.println(postForObject);
+        List<DayTravel> data1 = JSONObject.parseObject(postForObject).getObject("data", new TypeReference<List<DayTravel>>() {
+        });
+        log.info(JSON.toJSONString(data1));
+        return data1;
+    }
+
+
+    public static  List<TravelHistory> queryTravelHistory(String id){
+        String url="https://yhbb.hp888.com/open-api-test/travel/queryTravelHistory?id={id}";
+        HttpHeaders httpHeaders=new HttpHeaders();
+        if(StringUtils.isEmpty(token)){
+            token=getToken();
+        }
+        httpHeaders.add("Authorization","Bearer "+token);
+        Map<String,String> params1=new HashMap<>();
+        params1.put("id",id);
+        HttpEntity<String> request = new HttpEntity<>(null, httpHeaders);
+        String  postForObject = restTemplate.postForObject(url,request, String.class,params1);
+        List<TravelHistory> data1 = JSONObject.parseObject(postForObject).getObject("data", new TypeReference<List<TravelHistory>>() {
+        });
+        log.info(JSON.toJSONString(data1));
+        return data1;
+    }
+
 
     public static void main(String[] args) {
         //String token = TokenUtil.getToken();
-        List<PageDevice> pageDevices = TokenUtil.listAll(1, 10);
-        listCurrentPos(pageDevices);
+      //  List<PageDevice> pageDevices = TokenUtil.listAll(1, 10);
+//        List<DayTravel> dayTravels = TokenUtil.queryDayTravel("8856113833", "2020-11-26");
+//        System.out.println(dayTravels);
+        List<TravelHistory> travelHistories = TokenUtil.queryTravelHistory("7ED70DF20FB14CBF8CB0BC4E242121D5");
+        System.out.println(travelHistories);
+        // listCurrentPos(pageDevices);
         // System.out.println(token);
     }
 
