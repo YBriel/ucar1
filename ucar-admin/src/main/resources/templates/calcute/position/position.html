@@ -454,6 +454,14 @@
                     time:this.carTimeTemp,
                     deviceId:this.selectCarId
                 }).then(result => {
+                    console.log(JSON.stringify(result.body));
+                    if(result.body.length<=1){
+                        this.$message({
+                            type: 'warning',
+                            message: `当前日期无轨迹数据,请重新选择`
+                        });
+                    }
+
                     this.timeSplice=result.body;
                 });
             }
