@@ -18,7 +18,7 @@
                         <li>
                             <span class="demonstration">选择设备Id</span>
                             <select v-model="selectCarId">
-                                <option v-for="(item,i) in positionInfo" value=item.deviceId>{{item.deviceId}}</option>
+                                <option v-for="(item,i) in positionInfo" :value=item.deviceId>{{item.deviceId}}</option>
                                 <!--<option value="www.runoob.com">Runoob</option>
                                 <option value="www.google.com">Google</option>-->
                             </select>
@@ -34,10 +34,13 @@
                             </div>
                         </li>
                         <li>
-                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
-                                    class="fa fa-search"></i>&nbsp;搜索</a>
-                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
-                                    class="fa fa-refresh"></i>&nbsp;重置</a>
+                            <span class="demonstration">选择时间片段</span>
+                            <select v-model="selectTimeSplice">
+                                <option v-for="(item,i) in timeSplice" :value=item.id>{{item.accTime}}</option>
+                            </select>
+                        </li>
+                        <li>
+                            <el-button type="primary" plain @click="getTracks">查询轨迹</el-button>
                         </li>
                     </ul>
                 </div>
@@ -128,8 +131,8 @@
             let self = this;
 
             return {
-            	hello:'沃日',
                 carTime:'',
+                carTimeTemp:'',
                 selectCarId:'',
                 positionInfo: [
                     {
@@ -137,6 +140,13 @@
                         time: '',
                         lon: '',
                         lat: '',
+                    }
+                ],
+                selectTimeSplice:'',
+                timeSplice:[
+                    {
+                        id:'',
+                        accTime:''
                     }
                 ],
                 address: null,
@@ -148,12 +158,13 @@
                     citylimit: true
                 },
                 path: [
-                    [115.841818, 28.740776],
-                    [115.853319, 28.742808],
-                    [115.867052, 28.742507],
-                    [115.879755, 28.742055],
-                    [115.890055, 28.745517]
+
                 ],
+              /*  [115.841818, 28.740776],
+            [115.853319, 28.742808],
+                [115.867052, 28.742507],
+                [115.879755, 28.742055],
+                [115.890055, 28.745517]*/
                 center: [115.841312,28.741732],
                 zoom: 17,
                 lng: 0,
@@ -312,15 +323,12 @@
                         vm.poiPicker = poiPicker;
                         // 监听poi选中信息
                         poiPicker.on('poiPicked', function (poiResult) {
-                            // console.log(poiResult)
-                            console.log("哈哈哈11");
                             let source = poiResult.source;
                             let poi = poiResult.item;
                             if (source !== 'search') {
-                                console.log("哈哈哈12");
                                 poiPicker.searchByKeyword(poi.name)
                             } else {
-                                console.log("哈哈哈3");
+                               // console.log("哈哈哈3");
                                 poiPicker.clearSearchResults();
                                 vm.markers = [];
                                 let lng = poi.location.lng;
@@ -334,7 +342,7 @@
                                 vm.searchKey = address
                             }
                         });
-                        if (!PathSimplifier.supportCanvas) {
+                  /*      if (!PathSimplifier.supportCanvas) {
                             alert('当前环境不支持 Canvas！');
                             return
                         }
@@ -345,7 +353,6 @@
                             data: vm.path, // 巡航路径
                             // 获取巡航路径中的路径坐标数组
                             getPath: (pathData, pathIndex) => {
-
                                 return vm.path//pathData.path
                             }
                         });
@@ -354,12 +361,54 @@
                             loop: true, // 是否循环
                             speed: 2000 // 速度(km/h)
                         });
-                        pathNavigator.start()
+                        pathNavigator.start()*/
                     })
                 }catch (e) {
                     console.log(e)
                 }
 
+            },
+            getTracks(){
+                let vm = this;
+                let map = this.amapManager.getMap();
+                this.$http.post('http://localhost:9999/test/queryTravelHistory', {
+                    id:this.selectTimeSplice,
+                } ,{emulateJSON: true}).then(result => {
+                    vm.path=[];
+                    console.log(JSON.stringify(result.body.length));
+                    for (let j = 0; j < result.body.length; j++) {
+                        let path =  [result.body[j].lon, result.body[j].lat];
+                        this.path.push(path);
+                    }
+                });
+
+                AMapUI.loadUI(['misc/PathSimplifier'], function (PathSimplifier) {
+
+                    if (!PathSimplifier.supportCanvas) {
+                        alert('当前环境不支持 Canvas！');
+                        return
+                    }
+                    // 创建组件实例
+                    var pathSimplifierIns = new PathSimplifier({
+                        map: map,
+                        zIndex: 100, // 图层叠加顺序
+                        data: vm.path, // 巡航路径
+                        // 获取巡航路径中的路径坐标数组
+                        getPath: (pathData, pathIndex) => {
+                            return vm.path//pathData.path
+                        }
+                    });
+                    // 创建巡航器
+
+                    var pathNavigator = pathSimplifierIns.createPathNavigator(0, {
+                        loop: false, // 是否循环
+                        speed: 2000 // 速度(km/h)
+                    });
+                    //pathNavigator.stop();
+                    pathNavigator.start();
+                  //  map.setFitView();
+
+                })
             },
             searchByHand() {
                 if (this.searchKey !== '') {
@@ -385,12 +434,7 @@
         },
         beforeMount() {
             this.$http.post('http://localhost:9999/test/queryAllData', {}, {emulateJSON: true}).then(result => {
-                console.log("result.body");
-                console.log(JSON.stringify(result.body));
                 this.positionInfo=result.body;
-                console.log("这是positionInfo");
-                console.log(JSON.stringify(this.positionInfo));
-				console.log("这是positionInfo");
                 for (j = 0; j < result.body.length; j++) {
                     let marker = {
                         position: [result.body[j].lon, result.body[j].lat]
@@ -399,6 +443,20 @@
                 }
 
             })
+        },
+        watch:{
+            carTime(newVal,oldval){
+                if(this.selectCarId===null || this.selectCarId==="" || this.selectCarId.length<=1){
+                    return;
+                }
+                this.carTimeTemp=newVal;
+                this.$http.post('http://localhost:9999/test/queryDayTravelStr', {
+                    time:this.carTimeTemp,
+                    deviceId:this.selectCarId
+                }).then(result => {
+                    this.timeSplice=result.body;
+                });
+            }
         }
     });
 </script>

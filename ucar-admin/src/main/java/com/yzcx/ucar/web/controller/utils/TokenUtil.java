@@ -72,21 +72,18 @@ public class TokenUtil {
     }
 
     public static  List<DevicePosition> listCurrentPos(List<PageDevice> data){
-        String url="https://yhbb.hp888.com/open-api-test/devicestatus/listCurrentPos?deviceIds={deviceIds}";
+        String url="https://yhbb.hp888.com/open-api-test/devicestatus/listCurrentPos?deviceIds=";
         HttpHeaders httpHeaders=new HttpHeaders();
         MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         httpHeaders.add("Authorization","Bearer "+token);
         String[] strings = data.stream().map(PageDevice::getId).toArray(String[]::new);
-       // params.put("deviceIds", Arrays.toString(strings));
-
+        String s = Arrays.toString(strings).replace("[","").replace("]","");
         Map<String,String> params1=new HashMap<>();
         params1.put("deviceIds",Arrays.toString(strings));
         HttpEntity<String> request = new HttpEntity<>(null, httpHeaders);
-        String  postForObject = restTemplate.postForObject(url,request, String.class,params1);
-        System.out.println(postForObject);
+        String  postForObject = restTemplate.postForObject(url+s,request, String.class);
         List<DevicePosition> data1 = JSONObject.parseObject(postForObject).getObject("data", new TypeReference<List<DevicePosition>>() {
         });
-        System.out.println(JSON.toJSONString(data1));
         return data1;
     }
 
@@ -112,6 +109,31 @@ public class TokenUtil {
         });
         log.info(JSON.toJSONString(data1));
         return data1;
+    }
+
+
+    public static  List<DayTravelStr> queryDayTravelStr(String deviceId, String time){
+        String url="https://yhbb.hp888.com/open-api-test/travel/queryDayTravel?deviceId={deviceId}&time={time}"; //2020-11-26
+        HttpHeaders httpHeaders=new HttpHeaders();
+        if(StringUtils.isEmpty(token)){
+            token=getToken();
+        }
+        httpHeaders.add("Authorization","Bearer "+token);
+        Map<String,String> params1=new HashMap<>();
+        params1.put("deviceId",deviceId);
+        params1.put("time",time);
+        HttpEntity<String> request = new HttpEntity<>(null, httpHeaders);
+        String  postForObject = restTemplate.postForObject(url,request, String.class,params1);
+        List<DayTravel> data1 = JSONObject.parseObject(postForObject).getObject("data", new TypeReference<List<DayTravel>>() {});
+        List<DayTravelStr> strs=new ArrayList<>();
+        data1.forEach(o->{
+            DayTravelStr dayTravelStr=new DayTravelStr();
+            dayTravelStr.setId(o.getId());
+            dayTravelStr.setAccTime(o.getAccOnTime().split(" ")[1]+"-"+o.getAccOffTime().split(" ")[1]);
+            strs.add(dayTravelStr);
+        });
+        Collections.sort(strs);
+        return strs;
     }
 
 
