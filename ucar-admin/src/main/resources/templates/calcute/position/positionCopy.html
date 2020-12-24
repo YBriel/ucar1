@@ -380,46 +380,35 @@
                         let path =  [result.body[j].lon, result.body[j].lat];
                         this.path.push(path);
                     }
-               /*     console.log("---222222-------")
-                    console.log(AMapUI);*/
-                    AMapUI.loadUI(['misc/PathSimplifier'], function (PathSimplifier) {
-
-                        if (!PathSimplifier.supportCanvas) {
-                            alert('当前环境不支持 Canvas！');
-                            return
-                        }
-                        // 创建组件实例
-                        let pathSimplifierIns = new PathSimplifier({
-                            map: map,
-                            zIndex: 100, // 图层叠加顺序
-                            data: vm.path, // 巡航路径
-                            // 获取巡航路径中的路径坐标数组
-
-                            getPath: (pathData, pathIndex) => {
-                                return vm.path//pathData.path
-                            }
-                        });
-                        // 创建巡航器
-                    console.log("创建巡航器")
-                    console.log(map)
-
-                    console.log(pathSimplifierIns)
-                        var pathNavigator = pathSimplifierIns.createPathNavigator(0, {
-                            loop: false, // 是否循环
-                            speed: 2000 // 速度(km/h)
-                        });
-                       /* console.log("----------")
-                        console.log(pathNavigator)*/
-                      //  pathNavigator.stop();
-                        pathNavigator.start();
-
-                        map.remove(pathSimplifierIns);
-                        map.remove(pathNavigator);
-                        vm.pat=[]
-                        //  map.setFitView();
-
-                    })
                 });
+
+                AMapUI.loadUI(['misc/PathSimplifier'], function (PathSimplifier) {
+
+                    if (!PathSimplifier.supportCanvas) {
+                        alert('当前环境不支持 Canvas！');
+                        return
+                    }
+                    // 创建组件实例
+                    var pathSimplifierIns = new PathSimplifier({
+                        map: map,
+                        zIndex: 100, // 图层叠加顺序
+                        data: vm.path, // 巡航路径
+                        // 获取巡航路径中的路径坐标数组
+                        getPath: (pathData, pathIndex) => {
+                            return vm.path//pathData.path
+                        }
+                    });
+                    // 创建巡航器
+
+                    var pathNavigator = pathSimplifierIns.createPathNavigator(0, {
+                        loop: false, // 是否循环
+                        speed: 2000 // 速度(km/h)
+                    });
+                    //pathNavigator.stop();
+                    pathNavigator.start();
+                  //  map.setFitView();
+                    map.clearMap();
+                })
             },
             searchByHand() {
                 if (this.searchKey !== '') {
