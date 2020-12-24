@@ -29,6 +29,8 @@
                                 <el-date-picker
                                         v-model="carTime"
                                         type="date"
+                                        value-format="yyyy-MM-dd"
+                                        format="yyyy-MM-dd"
                                         placeholder="选择日期">
                                 </el-date-picker>
                             </div>
@@ -160,12 +162,6 @@
                 path: [
 
                 ],
-                myArr:[],
-              /*  [115.841818, 28.740776],
-            [115.853319, 28.742808],
-                [115.867052, 28.742507],
-                [115.879755, 28.742055],
-                [115.890055, 28.745517]*/
                 center: [115.841312,28.741732],
                 zoom: 17,
                 lng: 0,
@@ -360,7 +356,6 @@
                         pathSimplifierIns.setData([]);
                     }
                     AMapUI.loadUI(['misc/PathSimplifier'], function (PathSimplifier) {
-
                         if (!PathSimplifier.supportCanvas) {
                             alert('当前环境不支持 Canvas！');
                             return
@@ -376,7 +371,6 @@
                                 return vm.path//pathData.path
                             }
                         });
-                    vm.myArr.push(pathSimplifierIns);
                         var pathNavigator = pathSimplifierIns.createPathNavigator(0, {
                             loop: false, // 是否循环
                             speed: 2000 // 速度(km/h)
@@ -420,6 +414,7 @@
                     return;
                 }
                 this.carTimeTemp=newVal;
+                //console.log(this.carTimeTemp)
                 this.$http.post('http://localhost:9999/test/queryDayTravelStr', {
                     time:this.carTimeTemp,
                     deviceId:this.selectCarId
