@@ -160,6 +160,7 @@
                 path: [
 
                 ],
+                myArr:[],
               /*  [115.841818, 28.740776],
             [115.853319, 28.742808],
                 [115.867052, 28.742507],
@@ -355,8 +356,9 @@
                         let path =  [result.body[j].lon, result.body[j].lat];
                         this.path.push(path);
                     }
-               /*     console.log("---222222-------")
-                    console.log(AMapUI);*/
+                    if(window.pathSimplifierIns){
+                        pathSimplifierIns.setData([]);
+                    }
                     AMapUI.loadUI(['misc/PathSimplifier'], function (PathSimplifier) {
 
                         if (!PathSimplifier.supportCanvas) {
@@ -374,44 +376,26 @@
                                 return vm.path//pathData.path
                             }
                         });
-                        // 创建巡航器
-                        //   console.log("创建巡航器")
-                        //   console.log(map)
-
-                        //  console.log(pathSimplifierIns)
+                    vm.myArr.push(pathSimplifierIns);
                         var pathNavigator = pathSimplifierIns.createPathNavigator(0, {
                             loop: false, // 是否循环
                             speed: 2000 // 速度(km/h)
                         });
-                       /* console.log("----------")
-                        console.log(pathNavigator)*/
-                      //  pathNavigator.stop();
                         pathNavigator.start();
-
-                        map.remove(pathSimplifierIns);
-                        map.remove(pathNavigator);
-                        vm.pat=[]
-                        //  map.setFitView();
-
+                        window.pathSimplifierIns = pathSimplifierIns;
                     })
                 });
             },
             searchByHand() {
                 if (this.searchKey !== '') {
-                    //  console.log("哈哈哈14" + this.searchKey);
                     this.poiPicker.searchByKeyword(this.searchKey)
                 }
             },
             addMarker() {
-                // console.log("点击了添加maker");
-                //   console.log(JSON.stringify(this.markers));
-
                 let marker = {
                     position: [115.84179 + (Math.random() - 0.5) * 0.02, 28.74188 + (Math.random() - 0.5) * 0.02]
                 };
                 this.markers.push(marker);
-                //   console.log(JSON.stringify(marker));
-                //  console.log(JSON.stringify(this.markers));
             },
             removeMarker() {
                 if (!this.markers.length) return;
