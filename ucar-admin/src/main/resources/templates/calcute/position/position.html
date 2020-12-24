@@ -172,14 +172,14 @@
                 loaded: false,
                 events: {
                     init() {
-                        console.log("哈哈哈1");
+                        //  console.log("哈哈哈1");
                         VueAMap.lazyAMapApiLoaderInstance.load().then(() => {
                             self.initSearch()
                         })
                     },
                     // 点击获取地址的数据
                     click(e) {
-                        console.log("哈哈哈2");
+                        // console.log("哈哈哈2");
                         // console.log(e)
                         self.markers = [];
                         let {lng, lat} = e.lnglat;
@@ -200,7 +200,7 @@
                         geocoder.getAddress([lng, lat], function (status, result) {
                             if (status === 'complete' && result.info === 'OK') {
                                 if (result && result.regeocode) {
-                                    console.log(result.regeocode.formattedAddress);
+                                    //     console.log(result.regeocode.formattedAddress);
                                     self.address = result.regeocode.formattedAddress;
                                     self.searchKey = result.regeocode.formattedAddress;
                                     self.$nextTick()
@@ -216,7 +216,7 @@
                         events: {
 
                             init(o) {
-                                console.log(o.getAddress())
+                                //    console.log(o.getAddress())
                             }
                         }
                     },
@@ -225,14 +225,14 @@
                         pName: 'Geolocation',
                         events: {
                             init(o) {
-                                console.log("哈哈哈4");
+                                //   console.log("哈哈哈4");
                                 // o是高德地图定位插件实例
-                                console.log("哈哈哈");
-                                console.log(o);
-                                console.log("哈哈哈");
+                                //  console.log("哈哈哈");
+                                //  console.log(o);
+                                //  console.log("哈哈哈");
                                 o.getCurrentPosition((status, result) => {
-                                    console.log("哈哈哈5");
-                                    console.log(result);
+                                    //    console.log("哈哈哈5");
+                                    //   console.log(result);
                                     if (result && result.position) {
                                         // 设置经度
                                         self.lng = result.position.lng;
@@ -260,7 +260,7 @@
                         events: {
 
                             init(instance) {
-                                console.log("哈哈哈6")
+                                //    console.log("哈哈哈6")
                                 // console.log(instance);
                             }
                         }
@@ -271,7 +271,7 @@
                         events: {
 
                             init(instance) {
-                                console.log("哈哈哈7")
+                                //  console.log("哈哈哈7")
                                 // console.log(instance);
                             }
                         }
@@ -283,7 +283,7 @@
                         events: {
 
                             init(instance) {
-                                console.log("哈哈哈8")
+                                // console.log("哈哈哈8")
                                 // console.log(instance);
                             }
                         }
@@ -294,7 +294,7 @@
                         events: {
 
                             init(instance) {
-                                console.log("哈哈哈9")
+                                //  console.log("哈哈哈9")
                                 // console.log(instance)
                             }
                         }
@@ -304,69 +304,44 @@
         },
         methods: {
             initSearch() {
-                console.log("哈哈哈10");
+                //  console.log("哈哈哈10");
                 let vm = this;
-                console.log("哈哈哈10");
+                //  console.log("哈哈哈10");
                 let map = this.amapManager.getMap();
-                try {
-                    AMapUI.loadUI(['misc/PoiPicker','misc/PathSimplifier'], function (PoiPicker,PathSimplifier) {
-                        var poiPicker = new PoiPicker({
-                            input: 'search',
-                            placeSearchOptions: {
-                                map: map,
-                                pageSize: 10
-                            },
-                            suggestContainer: 'searchTip',
-                            searchResultsContainer: 'searchTip',
-                            searchByKeyword: ''
-                        });
-                        vm.poiPicker = poiPicker;
-                        // 监听poi选中信息
-                        poiPicker.on('poiPicked', function (poiResult) {
-                            let source = poiResult.source;
-                            let poi = poiResult.item;
-                            if (source !== 'search') {
-                                poiPicker.searchByKeyword(poi.name)
-                            } else {
-                               // console.log("哈哈哈3");
-                                poiPicker.clearSearchResults();
-                                vm.markers = [];
-                                let lng = poi.location.lng;
-                                let lat = poi.location.lat;
-                                let address = poi.cityname + poi.adname + poi.name;
-                                vm.center = [lng, lat];
-                                vm.markers.push([lng, lat]);
-                                vm.lng = lng;
-                                vm.lat = lat;
-                                vm.address = address;
-                                vm.searchKey = address
-                            }
-                        });
-                  /*      if (!PathSimplifier.supportCanvas) {
-                            alert('当前环境不支持 Canvas！');
-                            return
-                        }
-                        // 创建组件实例
-                        var pathSimplifierIns = new PathSimplifier({
+                AMapUI.loadUI(['misc/PoiPicker','misc/PathSimplifier'], function (PoiPicker,PathSimplifier) {
+                    var poiPicker = new PoiPicker({
+                        input: 'search',
+                        placeSearchOptions: {
                             map: map,
-                            zIndex: 100, // 图层叠加顺序
-                            data: vm.path, // 巡航路径
-                            // 获取巡航路径中的路径坐标数组
-                            getPath: (pathData, pathIndex) => {
-                                return vm.path//pathData.path
-                            }
-                        });
-                        // 创建巡航器
-                        var pathNavigator = pathSimplifierIns.createPathNavigator(0, {
-                            loop: true, // 是否循环
-                            speed: 2000 // 速度(km/h)
-                        });
-                        pathNavigator.start()*/
-                    })
-                }catch (e) {
-                    console.log(e)
-                }
-
+                            pageSize: 10
+                        },
+                        suggestContainer: 'searchTip',
+                        searchResultsContainer: 'searchTip',
+                        searchByKeyword: ''
+                    });
+                    vm.poiPicker = poiPicker;
+                    // 监听poi选中信息
+                    poiPicker.on('poiPicked', function (poiResult) {
+                        let source = poiResult.source;
+                        let poi = poiResult.item;
+                        if (source !== 'search') {
+                            poiPicker.searchByKeyword(poi.name)
+                        } else {
+                            // console.log("哈哈哈3");
+                            poiPicker.clearSearchResults();
+                            vm.markers = [];
+                            let lng = poi.location.lng;
+                            let lat = poi.location.lat;
+                            let address = poi.cityname + poi.adname + poi.name;
+                            vm.center = [lng, lat];
+                            vm.markers.push([lng, lat]);
+                            vm.lng = lng;
+                            vm.lat = lat;
+                            vm.address = address;
+                            vm.searchKey = address
+                        }
+                    });
+                })
             },
             getTracks(){
                 let vm = this;
@@ -375,7 +350,7 @@
                     id:this.selectTimeSplice,
                 } ,{emulateJSON: true}).then(result => {
                     vm.path=[];
-                    console.log(JSON.stringify(result.body.length));
+                    //   console.log(JSON.stringify(result.body.length));
                     for (let j = 0; j < result.body.length; j++) {
                         let path =  [result.body[j].lon, result.body[j].lat];
                         this.path.push(path);
@@ -400,10 +375,10 @@
                             }
                         });
                         // 创建巡航器
-                    console.log("创建巡航器")
-                    console.log(map)
+                        //   console.log("创建巡航器")
+                        //   console.log(map)
 
-                    console.log(pathSimplifierIns)
+                        //  console.log(pathSimplifierIns)
                         var pathNavigator = pathSimplifierIns.createPathNavigator(0, {
                             loop: false, // 是否循环
                             speed: 2000 // 速度(km/h)
@@ -423,20 +398,20 @@
             },
             searchByHand() {
                 if (this.searchKey !== '') {
-                    console.log("哈哈哈14" + this.searchKey);
+                    //  console.log("哈哈哈14" + this.searchKey);
                     this.poiPicker.searchByKeyword(this.searchKey)
                 }
             },
             addMarker() {
-                console.log("点击了添加maker");
-                console.log(JSON.stringify(this.markers));
+                // console.log("点击了添加maker");
+                //   console.log(JSON.stringify(this.markers));
 
                 let marker = {
                     position: [115.84179 + (Math.random() - 0.5) * 0.02, 28.74188 + (Math.random() - 0.5) * 0.02]
                 };
                 this.markers.push(marker);
-                console.log(JSON.stringify(marker));
-                console.log(JSON.stringify(this.markers));
+                //   console.log(JSON.stringify(marker));
+                //  console.log(JSON.stringify(this.markers));
             },
             removeMarker() {
                 if (!this.markers.length) return;
@@ -465,7 +440,7 @@
                     time:this.carTimeTemp,
                     deviceId:this.selectCarId
                 }).then(result => {
-                    console.log(JSON.stringify(result.body));
+                    //  console.log(JSON.stringify(result.body));
                     if(result.body.length<=1){
                         this.$message({
                             type: 'warning',
